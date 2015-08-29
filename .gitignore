@@ -1,0 +1,12 @@
+*.map
+/Listings
+/Objects
+*.lst
+*.txt
+*.bak
+*~
+/sf
+*.o
+*.d
+*.crf
+
