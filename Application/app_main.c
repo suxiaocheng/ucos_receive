@@ -219,10 +219,66 @@ static void AppTaskNorFlashOperation(void *p_arg)
 }
 #endif
 
+//#define NRF24L01_TEST
+
 void AppTaskNRF24L01(void *p_arg)
 {
+	uint32_t status = 0;
+	uint8_t receive_dat[4];
+	uint32_t ret;
+	
+	#ifndef NRF24L01_TEST
+	nrf24l01_init();
+
+	nrf24l01_set_rx_mode();
+
+	while (1) {
+		ret = nrf24l01_receive_data(receive_dat);
+		if(ret){
+			stm_printf("Receive data, %x-%x-%x-%x\n", 
+				receive_dat[0], receive_dat[1], 
+				receive_dat[2], receive_dat[3]);
+		}
+		OSTimeDlyHMSM(0, 0, 0, 20);
+		//stm_printf("Task2\n");
+	}
+	
+	#else
+
+	{
+		GPIO_InitTypeDef GPIO_InitStructure;
+		/* Init the gpio */
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+	}
+	
 	while (1) {
 		OSTimeDlyHMSM(0, 0, 0, 500);
 		stm_printf("Task2\n");
+		status = !status;
+		if(status){
+			GPIO_SetBits(GPIOA, GPIO_Pin_8);
+			GPIO_SetBits(GPIOB, GPIO_Pin_12);
+			GPIO_SetBits(GPIOB, GPIO_Pin_13);
+			GPIO_SetBits(GPIOB, GPIO_Pin_14);
+			GPIO_SetBits(GPIOB, GPIO_Pin_15);
+		}else{
+			GPIO_ResetBits(GPIOA, GPIO_Pin_8);
+			GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+			GPIO_ResetBits(GPIOB, GPIO_Pin_13);
+			GPIO_ResetBits(GPIOB, GPIO_Pin_14);
+			GPIO_ResetBits(GPIOB, GPIO_Pin_15);
+		}		
 	}
+	#endif
 }
