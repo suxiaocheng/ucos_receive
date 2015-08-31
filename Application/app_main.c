@@ -233,12 +233,14 @@ void AppTaskNRF24L01(void *p_arg)
 	nrf24l01_set_rx_mode();
 
 	while (1) {
-		ret = nrf24l01_receive_data(receive_dat);
-		if(ret){
-			stm_printf("Receive data, %x-%x-%x-%x\n", 
-				receive_dat[0], receive_dat[1], 
-				receive_dat[2], receive_dat[3]);
-		}
+		do{
+			ret = nrf24l01_receive_data(receive_dat);
+			if(ret){
+				stm_printf("Receive data, %x-%x-%x-%x\n", 
+					receive_dat[0], receive_dat[1], 
+					receive_dat[2], receive_dat[3]);
+			}
+		}while(ret);
 		OSTimeDlyHMSM(0, 0, 0, 20);
 		//stm_printf("Task2\n");
 	}

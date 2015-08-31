@@ -226,9 +226,7 @@ uint32_t nrf24l01_receive_data(uint8_t *RevDate)
 	/* Check if fifo is not empty */
 	if(!RevFlags)
 	{
-		ret = nrf24l01_read_reg(R_REGISTER+FIFO_STATUS);
-		//stm_printf("fifo status: %x\n", ret);
-		if((ret & FIFO_STATUS_RX_EMPTY) == 0)
+		if((ret & STATUS_RX_P_NO) != STATUS_RX_P_NO)
 		{
 			nrf24l01_read_buf(R_RX_PAYLOAD,RevDate,RX_DATA_WITDH);// 从RXFIFO读取数据
 			RevFlags=1;	   //读取数据完成标志
