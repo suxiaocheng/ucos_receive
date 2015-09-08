@@ -62,6 +62,7 @@ __heap_limit
                     
                 IMPORT  OS_CPU_PendSVHandler
                 IMPORT  OS_CPU_SysTickHandler
+				IMPORT	stm_printf
 
 __Vectors       DCD     __initial_sp               ; Top of Stack
                 DCD     Reset_Handler              ; Reset Handler
@@ -154,12 +155,16 @@ NMI_Handler     PROC
                 ENDP
 HardFault_Handler\
                 PROC
-                EXPORT  HardFault_Handler          [WEAK]
+                EXPORT  HardFault_Handler          [WEAK]				
+				LDR		R0, =STR_HardFault_Handler
+				BL		stm_printf
                 B       .
                 ENDP
 MemManage_Handler\
                 PROC
                 EXPORT  MemManage_Handler          [WEAK]
+				LDR		R0, =STR_MemManage_Handler
+				BL		stm_printf
                 B       .
                 ENDP
 BusFault_Handler\
@@ -279,9 +284,18 @@ USART3_IRQHandler
 EXTI15_10_IRQHandler
 RTCAlarm_IRQHandler
 USBWakeUp_IRQHandler
-
+				LDR		R0, =STR_Default_Handler
+				BL		stm_printf
                 B       .
-
+				
+				
+STR_HardFault_Handler
+				DCB		"Hard Fault\n"
+STR_MemManage_Handler
+				DCB		"Mem Manage\n"
+STR_Default_Handler
+				DCB		"Default Handler\n"
+				
                 ENDP
 
                 ALIGN

@@ -2,12 +2,17 @@
 
 char *DECToASCII(uint32_t dat, char *str)
 {
-	char tmp[12], *stmp = tmp;
+	char tmp[13], *stmp = tmp;
 
 	*stmp++ = 0;
 
 	if (dat == 0)
 		*str++ = '0';
+
+	if(dat > 0x80000000){
+		*stmp++ = '-';
+		dat = ~dat + 1;
+	}
 
 	while (dat) {
 		*stmp++ = dat % 10 + '0';

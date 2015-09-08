@@ -448,6 +448,21 @@
               <FileType>1</FileType>
               <FilePath>.\Application\nrf24l01.c</FilePath>
             </File>
+            <File>
+              <FileName>soft_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\soft_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\MPU6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050_DMP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\MPU6050_DMP.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -929,6 +944,21 @@
               <FileName>nrf24l01.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Application\nrf24l01.c</FilePath>
+            </File>
+            <File>
+              <FileName>soft_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\soft_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\MPU6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050_DMP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\MPU6050_DMP.c</FilePath>
             </File>
           </Files>
         </Group>

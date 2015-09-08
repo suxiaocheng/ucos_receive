@@ -48,6 +48,8 @@
 
 #define  APP_CFG_TASK_NRF24L01_PRIO                           4u
 
+#define  APP_CFG_TASK_MPU6050_PRIO                           5u
+
 #define  OS_TASK_TMR_PRIO                        (OS_LOWEST_PRIO - 2u)
 
 /*

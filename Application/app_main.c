@@ -51,7 +51,10 @@ static OS_STK AppTaskStartStk[APP_CFG_TASK_START_STK_SIZE];
 #ifdef NOR_FLASH_OPERATION_ENABLE
 static OS_STK AppTaskNorFlashOperationStk[APP_CFG_TASK_START_STK_SIZE];
 #endif
+#ifdef NRF24L01_OPERATION_ENABLE
 static OS_STK AppTaskNorNRF24L01Stk[APP_CFG_TASK_START_STK_SIZE];
+#endif
+static OS_STK AppTaskMPU6050Stk[APP_CFG_TASK_START_STK_SIZE+128];
 
 #ifdef NOR_FLASH_OPERATION_ENABLE
 /* Used for nor flash test */
@@ -68,7 +71,10 @@ static void AppTaskStart(void *p_arg);
 #ifdef NOR_FLASH_OPERATION_ENABLE
 static void AppTaskNorFlashOperation(void *p_arg);
 #endif
+#ifdef NRF24L01_OPERATION_ENABLE
 static void AppTaskNRF24L01(void *p_arg);
+#endif
+static void AppTaskMPU6050(void *p_arg);
 
 /*
 *********************************************************************************************************
@@ -85,8 +91,6 @@ static void AppTaskNRF24L01(void *p_arg);
 
 int main(void)
 {
-	INT8U os_err;
-
 	BSP_Init();
 
 	stm_printf("System Startup\n");
@@ -151,7 +155,7 @@ static void AppTaskStart(void *p_arg)
 	RCC_GetClocksFreq(&RCC_Clocks);	/* Determine SysTick reference freq.                    */
 	cnts = RCC_Clocks.SYSCLK_Frequency / (INT32U) OS_TICKS_PER_SEC;
 	OS_CPU_SysTickInit(cnts);	/* Init uC/OS periodic time src (SysTick).              */
-#if NOR_FLASH_OPERATION_ENABLE
+#ifdef NOR_FLASH_OPERATION_ENABLE
 #if OS_TASK_CREATE_EXT_EN > 0u
 	OSTaskCreateExt((void (*)(void *))AppTaskNorFlashOperation,	/* Create the start task                                */
 			(void *)0,
@@ -171,6 +175,7 @@ static void AppTaskStart(void *p_arg)
 #endif
 #endif
 
+#ifdef NRF24L01_OPERATION_ENABLE
 #if OS_TASK_CREATE_EXT_EN > 0u
 	OSTaskCreateExt((void (*)(void *))AppTaskNRF24L01,	/* Create the start task                                */
 			(void *)0,
@@ -186,6 +191,24 @@ static void AppTaskStart(void *p_arg)
 			   (void *)0,
 			   &AppTaskNorNRF24L01Stk[APP_CFG_TASK2_STK_SIZE - 1],
 			   APP_CFG_TASK_NRF24L01_PRIO);
+#endif
+#endif
+
+#if OS_TASK_CREATE_EXT_EN > 0u
+	OSTaskCreateExt((void (*)(void *))AppTaskMPU6050,	/* Create the start task                                */
+			(void *)0,
+			(OS_STK *) &
+			AppTaskMPU6050Stk[APP_CFG_TASK2_STK_SIZE - 1],
+			(INT8U) APP_CFG_TASK_MPU6050_PRIO,
+			(INT16U) APP_CFG_TASK_MPU6050_PRIO,
+			(OS_STK *) & AppTaskMPU6050Stk[0],
+			(INT32U) APP_CFG_TASK2_STK_SIZE, (void *)0,
+			(INT16U) (OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR));
+#else
+	(void)OSTaskCreate(AppTaskMPU6050,
+			   (void *)0,
+			   &AppTaskMPU6050Stk[APP_CFG_TASK2_STK_SIZE - 1],
+			   APP_CFG_TASK_MPU6050_PRIO);
 #endif
 
 #if (OS_TASK_STAT_EN > 0)
@@ -219,11 +242,11 @@ static void AppTaskNorFlashOperation(void *p_arg)
 }
 #endif
 
+#ifdef NRF24L01_OPERATION_ENABLE
 //#define NRF24L01_TEST
-
 void AppTaskNRF24L01(void *p_arg)
 {
-	uint32_t status = 0;
+	//uint32_t status = 0;
 	uint8_t receive_dat[4];
 	uint32_t ret;
 	
@@ -246,7 +269,6 @@ void AppTaskNRF24L01(void *p_arg)
 	}
 	
 	#else
-
 	{
 		GPIO_InitTypeDef GPIO_InitStructure;
 		/* Init the gpio */
@@ -284,3 +306,54 @@ void AppTaskNRF24L01(void *p_arg)
 	}
 	#endif
 }
+#endif
+
+void AppTaskMPU6050(void *p_arg)
+{
+	uint32_t device_status;
+	uint8_t mpuIntStatus;
+	uint16_t packetSize;
+	uint16_t fifoCount;
+	uint8_t fifoBuffer[64];
+	int16_t raw_quaternion[4];
+	float w, x, y, z;
+	
+	device_status = dmpInitialize();
+	if(device_status == TRUE){
+		setDMPEnabled(TRUE);
+		mpuIntStatus = getIntStatus();
+		packetSize = dmpGetFIFOPacketSize();
+	}else{
+		stm_printf("Init MPU6050 DMP Fail\n");
+	}
+	
+	while (1) {
+		if(device_status == TRUE){
+			mpuIntStatus = getIntStatus();
+			fifoCount = getFIFOCount();
+			if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
+				resetFIFO();
+				stm_printf("FIFO overflow!\n");
+			}else if(mpuIntStatus & 0x02){
+				while (fifoCount < packetSize) {
+					OSTimeDlyHMSM(0, 0, 0, 10);
+					fifoCount = getFIFOCount();
+				}
+				getFIFOBytes(fifoBuffer, packetSize);
+				fifoCount -= packetSize;
+
+				dmpGetQuaternion(raw_quaternion, fifoBuffer);
+
+				w = (float)raw_quaternion[0] / 16384.0f;
+				x = (float)raw_quaternion[1] / 16384.0f;
+				y = (float)raw_quaternion[2] / 16384.0f;
+				z = (float)raw_quaternion[3] / 16384.0f;
+
+				stm_printf("w:%d\tx:%d\ty:%d\tz:%d\n", 
+					(uint32_t)w, (uint32_t)x,(uint32_t)y,(uint32_t)z);
+			}
+		}
+		OSTimeDlyHMSM(0, 0, 0, 10);
+	}
+}
+

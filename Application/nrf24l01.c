@@ -7,6 +7,7 @@
  * GPIOB13->MOSI
  * GPIOB15->CSN
  */
+#ifdef NRF24L01_OPERATION_ENABLE
 
 const uint8_t nrf24l01_addr[]={0x34,0x43,0x10,0x10,0x01};
 
@@ -234,4 +235,5 @@ uint32_t nrf24l01_receive_data(uint8_t *RevDate)
 	}	
 	return RevFlags;
 }
+#endif
 
