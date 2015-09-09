@@ -155,16 +155,20 @@ NMI_Handler     PROC
                 ENDP
 HardFault_Handler\
                 PROC
-                EXPORT  HardFault_Handler          [WEAK]				
+                EXPORT  HardFault_Handler          [WEAK]
+				STMFD	SP!, {R14}
 				LDR		R0, =STR_HardFault_Handler
 				BL		stm_printf
+				LDMFD	SP!, {R14}
                 B       .
                 ENDP
 MemManage_Handler\
                 PROC
                 EXPORT  MemManage_Handler          [WEAK]
+				STMFD	SP!, {R14}
 				LDR		R0, =STR_MemManage_Handler
 				BL		stm_printf
+				LDMFD	SP!, {R14}
                 B       .
                 ENDP
 BusFault_Handler\
@@ -284,17 +288,19 @@ USART3_IRQHandler
 EXTI15_10_IRQHandler
 RTCAlarm_IRQHandler
 USBWakeUp_IRQHandler
+				STMFD	SP!, {R14}
 				LDR		R0, =STR_Default_Handler
 				BL		stm_printf
+				LDMFD	SP!, {R14}
                 B       .
 				
 				
 STR_HardFault_Handler
-				DCB		"Hard Fault\n"
+				DCB		"Hard Fault\n",0x0
 STR_MemManage_Handler
-				DCB		"Mem Manage\n"
+				DCB		"Mem Manage\n",0x0
 STR_Default_Handler
-				DCB		"Default Handler\n"
+				DCB		"Default Handler\n",0x0
 				
                 ENDP
 
